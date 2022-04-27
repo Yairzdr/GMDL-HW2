@@ -3,18 +3,13 @@ import itertools
 
 
 def G(row_s: np.array, temp: float):
-    """
-    Exercise 1,
-    the prod+vstack can also be arr[0:len(arr-1)] @ arr[1:len(arr)]
-    """
+    # Exercise 1
     asserts([row_s], [temp])
-    return np.exp((1 / temp) * (np.sum(np.prod(np.vstack([row_s[:-1], row_s[1:]]).T, axis=1))))
+    return np.exp((1 / temp) * row_s[:-1] @ row_s[1:])
 
 
 def F(row_s: np.array, row_t: np.array, temp: float):
-    """
-    Exercise 2
-    """
+    # Exercise 2
     asserts([row_s, row_t], [temp])
     return np.exp((1 / temp) * (row_s @ row_t))
 
@@ -97,7 +92,7 @@ if __name__ == '__main__':
     b = np.arange(10) * 0.2
     c = np.array([[1, 2, 3]])
     print(f"Ex1: a={a}, G(a,1)={G(a, 1)}")
-    print(f"Ex2: a={a}, b={b}, F(a,b,1)={F(a,b,1)}")
+    print(f"Ex2: a={a}, b={b}, F(a,b,1)={F(a, b, 1)}")
     # print(f"Testing 1xn: {G(np.eye(2),1)}")
     # print(f"Testing temp: {F(a,b,0)}")
     print(f"Ex3 results: {ex3()}")
