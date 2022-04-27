@@ -131,7 +131,5 @@ if __name__ == '__main__':
     print(f"Ex2: a={a}, b={b}, F(a,b,1)={F(a, b, 1)}")
     # print(f"Testing 1xn: {G(np.eye(2),1)}")
     # print(f"Testing temp: {F(a,b,0)}")
-    print(f"Ex3 results: {ex3()}")
-    print(f"Ex4 results: {ex4()}")
-    print(f"Ex5 results: {ex5()}")
-    print(f"Ex6 results: {ex6()}")
+    for ex in [ex3,ex4,ex5,ex6]:
+        print(f"{ex.__name__} results: {ex()}")
