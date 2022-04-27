@@ -66,6 +66,42 @@ def ex4():
     return dict(zip(temps, ztemps))
 
 
+def ex5():
+    length = 2
+    ys = np.arange(4)
+    perms = list(itertools.product(ys, repeat=length))
+    temps = [1, 1.5, 2]
+    ztemps = []
+    for temp in temps:
+        g, f = adjustFunctions(temp, width=2)  # note on page 4
+        ztemp = sum([(g(y1) * g(y2) * f(y1, y2))
+                     for (y1, y2) in perms])
+        ztemps.append(ztemp)
+    return dict(zip(temps, ztemps))
+
+
+def ex6():
+    length = 3
+    ys = np.arange(8)
+    perms = list(itertools.product(ys, repeat=length))
+    temps = [1, 1.5, 2]
+    ztemps = []
+    for temp in temps:
+        g, f = adjustFunctions(temp, width=3)  # note on page 5
+        ztemp = sum([(g(y1) * g(y2) * g(y3) * f(y1, y2) * f(y2, y3))
+                     for (y1, y2, y3) in perms])
+        ztemps.append(ztemp)
+    return dict(zip(temps, ztemps))
+
+
+def adjustFunctions(temp, width):
+    """
+    Given temp and a width is cast all y occurrences using y2row,
+    returns corresponding G, and F
+    """
+    return lambda y: G(y2row(y, width), temp), lambda y1, y2: F(y2row(y1, width), y2row(y2, width), temp)
+
+
 def y2row(y, width=8):
     """
     y: an integer in (0,...,(2**width)-1)
@@ -97,3 +133,5 @@ if __name__ == '__main__':
     # print(f"Testing temp: {F(a,b,0)}")
     print(f"Ex3 results: {ex3()}")
     print(f"Ex4 results: {ex4()}")
+    print(f"Ex5 results: {ex5()}")
+    print(f"Ex6 results: {ex6()}")
