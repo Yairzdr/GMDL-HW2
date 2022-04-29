@@ -94,6 +94,79 @@ def ex6():
     return dict(zip(temps, ztemps))
 
 
+def ex7(length=3):
+    length = 8
+    length_square = 2 ** length
+    k = np.arange(length_square)
+    temps = [1, 1.5, 2]
+    results = dict(zip(temps, [{"T": None, "p": None} for i in temps]))
+    for temp in temps:
+        g, f = adjustFunctions(temp, width=length)
+        Ts = np.array([[0.] * length_square] * length)
+        ps = [[0.] * length_square] * length
+        for i in range(length):
+            # first
+            if i == 0:
+                # every T1(y_a) = sigma(G(y)F(y,y_a) for 0<=y<=length_square
+                t = lambda y2: sum(np.array(list(map(
+                    lambda y1: g(y1) * f(y1, y2), k))))
+                apply_sum = np.array(list(map(t, k)))
+                # set the corresponding y in the array
+                for j in range(length_square):
+                    Ts[i][j] = apply_sum[j]
+            # all between
+            elif i < length - 1:
+                pre_t = Ts[i - 1]  # holds the previous t function value
+                t = lambda yk_1: sum(np.array(list(map(
+                    lambda yk: pre_t[yk] * g(yk) * f(yk, yk_1), k))))
+                apply_sum = np.array(list(map(t, k)))
+                for j in range(length_square):
+                    Ts[i][j] = apply_sum[j]
+            # last
+            else:
+                t = sum(np.array(list(map(
+                    lambda yk: Ts[i - 1][yk] * g(yk), k))))
+                Ts[i] = t
+
+        ztemp = Ts[length - 1][0]
+
+        for i in range(length - 1, -1, -1):
+            # last
+            if i == length - 1:
+                p = lambda y: (Ts[i][y] * g(y)) / ztemp
+                py = np.array(list(map(p, k)))
+                ps[i] = py
+            # all between
+            elif i > 0:
+                p = lambda yk, yk_1: (Ts[i][yk] * g(yk) * f(yk, yk_1)) / (Ts[i + 1][yk_1])
+                py = np.array(list(map(
+                    lambda yk_1:
+                    np.array(list(map(
+                        lambda y: p(y, yk_1), k))), k)))
+                ps[i] = py
+            # last
+            else:
+                p = lambda y1, y2: (g(y1) * f(y1, y2)) / (Ts[i][y2])
+                py = np.array(list(map(
+                    lambda y2:
+                    np.array(list(map(
+                        lambda y1: p(y1, y2), k))), k)))
+                ps[i] = py
+
+        results[temp]["T"] = Ts
+        results[temp]["p"] = ps
+    return results
+
+
+def print_results(results):
+    for temp in results:
+        print(f"\ntemp={temp}:")
+        for i, arr in enumerate(results[temp]["T"]):
+            print(f"T{i + 1} = {arr}")
+            print(f"p{i + 1} = {results[temp]['p'][i].shape}")
+            print('-' * 25)
+
+
 def adjustFunctions(temp, width):
     """
     Given temp and a width is cast all y occurrences using y2row,
@@ -127,9 +200,10 @@ if __name__ == '__main__':
     a = np.arange(10) + 1
     b = np.arange(10) * 0.2
     c = np.array([[1, 2, 3]])
-    print(f"Ex1: a={a}, G(a,1)={G(a, 1)}")
-    print(f"Ex2: a={a}, b={b}, F(a,b,1)={F(a, b, 1)}")
+    # print(f"Ex1: a={a}, G(a,1)={G(a, 1)}")
+    # print(f"Ex2: a={a}, b={b}, F(a,b,1)={F(a, b, 1)}")
     # print(f"Testing 1xn: {G(np.eye(2),1)}")
     # print(f"Testing temp: {F(a,b,0)}")
-    for ex in [ex3,ex4,ex5,ex6]:
-        print(f"{ex.__name__} results: {ex()}")
+    # for ex in [ex3, ex4, ex5, ex6,ex7]:
+    #     print(f"{ex.__name__} results: {ex()}")
+    print_results(ex7())
