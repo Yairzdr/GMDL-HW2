@@ -1,5 +1,8 @@
 import numpy as np
 import itertools
+import functools
+import operator
+import matplotlib.pyplot as plt
 
 
 def G(row_s: np.array, temp: float):
@@ -94,16 +97,14 @@ def ex6():
     return dict(zip(temps, ztemps))
 
 
-def ex7(length=3):
-    length = 8
+def get_ts_ps(temps, length):
     length_square = 2 ** length
     k = np.arange(length_square)
-    temps = [1, 1.5, 2]
-    results = dict(zip(temps, [{"T": None, "p": None} for i in temps]))
+    results = dict(zip(temps, [{"T": None, "p": None, "Es": None} for i in temps]))
     for temp in temps:
         g, f = adjustFunctions(temp, width=length)
         Ts = np.array([[0.] * length_square] * length)
-        ps = [[0.] * length_square] * length
+        ps = np.array([np.zeros((length_square, length_square))] * length)
         for i in range(length):
             # first
             if i == 0:
@@ -133,12 +134,13 @@ def ex7(length=3):
         for i in range(length - 1, -1, -1):
             # last
             if i == length - 1:
-                p = lambda y: (Ts[i][y] * g(y)) / ztemp
+                #  TODO - fix a bug > 1.
+                p = lambda y: (Ts[i - 1][y] * g(y)) / ztemp
                 py = np.array(list(map(p, k)))
                 ps[i] = py
             # all between
             elif i > 0:
-                p = lambda yk, yk_1: (Ts[i][yk] * g(yk) * f(yk, yk_1)) / (Ts[i + 1][yk_1])
+                p = lambda yk, yk_1: (Ts[i - 1][yk] * g(yk) * f(yk, yk_1)) / (Ts[i][yk_1])
                 py = np.array(list(map(
                     lambda yk_1:
                     np.array(list(map(
@@ -152,10 +154,54 @@ def ex7(length=3):
                     np.array(list(map(
                         lambda y1: p(y1, y2), k))), k)))
                 ps[i] = py
-
         results[temp]["T"] = Ts
         results[temp]["p"] = ps
     return results
+
+
+def sampler(ps, length, n_samples):
+    results = np.array([np.ones((length, length))] * n_samples)
+    rand = lambda p: np.random.choice(np.arange(2 ** length), p=p)
+    currY = 0  # empty init
+    for i in range(n_samples):
+        for j in range(length - 1, -1, -1):
+            if j == length - 1:
+                #  TODO fix prob sum > 1
+                currY = rand(ps[j][0])  # to get the 1xlength
+                results[i][j] = y2row(currY, length)
+            else:
+                currY = rand(ps[j][currY])
+                results[i][j] = y2row(currY, length)
+    return results
+
+
+def ex7(temps=[1, 1.5, 2], length=8):
+    n_samples = 10
+    d = get_ts_ps(temps, length)
+    fig, axs = plt.subplots(len(temps), n_samples, dpi=150)
+    fig.suptitle("Samples per temp")
+    for i, temp in enumerate(d):
+        axs[i, 0].set_ylabel(f'temp={temp}')
+        for j, sample in enumerate(sampler(d[temp]["p"], length, n_samples)):
+            axs[i, j].imshow(sample, interpolation='None')
+            axs[i, j].set_yticks([])
+            axs[i, j].set_xticks([])
+    plt.show()
+
+
+def ex8(temps=[1, 1.5, 2], length=8):
+    n_samples = 10000
+    d = get_ts_ps(temps, length)
+    for i, temp in enumerate(d):
+        Es = {"11": 0, "18": 0}
+        for _ in range(n_samples):
+            sample = sampler(d[temp]["p"], length, 1)[0]
+            Es["11"] += sample[0][0] * sample[1][1]
+            Es["18"] += sample[0][0] * sample[length - 1][length - 1]
+        Es["11"] /= n_samples
+        Es["18"] /= n_samples
+        d[temp]["Es"] = Es
+        print(d[temp]["Es"])
 
 
 def print_results(results):
@@ -206,4 +252,5 @@ if __name__ == '__main__':
     # print(f"Testing temp: {F(a,b,0)}")
     # for ex in [ex3, ex4, ex5, ex6,ex7]:
     #     print(f"{ex.__name__} results: {ex()}")
-    print_results(ex7())
+    # ex7()
+    ex8()
