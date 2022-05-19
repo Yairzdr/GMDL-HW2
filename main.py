@@ -348,6 +348,5 @@ def ex10(temps=[1, 1.5, 2], size=100):
 
 
 if __name__ == '__main__':
-    # for ex in [ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10]:
-    #     print(f"\n{ex.__name__}\nresults: {ex()}\n\n")
-    print(ex9())
+    for ex in [ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10]:
+        print(f"\n{ex.__name__}\nresults: {ex()}\n\n")
